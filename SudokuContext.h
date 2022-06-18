@@ -11,31 +11,29 @@ private:
     SudokuDifficulty   RandomDifficulty;  // Store the actual difficulty if the game difficulty is random or custom
     size_t             MaxRemovedTiles;   // Max removed tiles for certain difficulties. The lower it is, the easier the difficulty could be
     std::mt19937_64    GameRNG;           // Game's Random Number Generator for generating the puzzle
-    SudokuBoard        PuzzleBoard;       // The puzzle board. Should never be modified outside the class except for SetTile function
-    SudokuBoardLogic   PuzzleLogic;       // The logic of the puzzle board
-    SudokuBoard        SolutionBoard;     // The puzzle's actual solution
-    SudokuBoardLogic   SolutionLogic;     // The actual solutions logic
+    SudokuBoard        SolutionBoard;     // Stores the solution of the sudoku board
+    SudokuBoard        PuzzleBoard;       // Stores the puzzle of the sudoku board
 
 public:
     SudokuContext();
 
     // Initialized the game with a pre-made sudoku board
     bool
-    InitializeGame(SudokuBoard& board) noexcept;
+    InitializeSudoku(std::array<std::array<char, 9>, 9>& board) noexcept;
     // Initialized the game with a random sudoku board
     bool
-    InitializeGame(SudokuDifficulty game_difficulty) noexcept;
+    InitializeSudoku(SudokuDifficulty game_difficulty) noexcept;
     // Checks if the current puzzle is already finished
     bool
-    CheckGameState() const noexcept;
+    CheckPuzzleState() const noexcept;
 
     // Getters
-    SudokuBoard&     GetPuzzleBoard    () noexcept;
-    SudokuBoard&     GetSolutionBoard  () noexcept;
-    SudokuDifficulty GetBoardDifficulty() const noexcept;
+    SudokuBoard*             GetPuzzleBoard    () noexcept;
+    const SudokuBoard*       GetSolutionBoard  () const noexcept;
+    const SudokuDifficulty&  GetBoardDifficulty() const noexcept;
 
     // Setters
-    bool SetTile(uint16_t row, uint16_t col, uint16_t number);
+    bool SetTile(int row, int col, int number);
 
 private:
     // Create a sudoku board
@@ -46,7 +44,7 @@ private:
     ClearAllBoards() noexcept;
     // Fill the board with random numbers (still abides the sudoku rules)
     bool
-    FillFullBoard() noexcept;
+    CreateCompleteBoard() noexcept;
     // Make a puzzle out of the created sudoku board
     bool
     GeneratePuzzle() noexcept;
