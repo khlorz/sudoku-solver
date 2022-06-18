@@ -41,30 +41,30 @@ public:
     constexpr bool IsEmpty() noexcept;
 
     // Getters
-    std::bitset<9>& GetRowOccurences(uint16_t row)  noexcept;
-    std::bitset<9>& GetColumnOccurences(uint16_t col)  noexcept;
-    std::bitset<9>& GetCellOccurences(uint16_t cell) noexcept;
-    std::bitset<9>  GetTileOccurences(uint16_t row, uint16_t col) const noexcept;
+    std::bitset<9>& GetRowOccurences(short row)  noexcept;
+    std::bitset<9>& GetColumnOccurences(short col)  noexcept;
+    std::bitset<9>& GetCellOccurences(short cell) noexcept;
+    std::bitset<9>  GetTileOccurences(short row, short col) const noexcept;
 
     // Setters
     void ResetAll();
-    void SetCellNumber(uint16_t row, uint16_t col, uint16_t number) noexcept;
-    void ResetCellNumber(uint16_t row, uint16_t col, uint16_t number) noexcept;
+    void SetCellNumber(short row, short col, short number) noexcept;
+    void ResetCellNumber(short row, short col, short number) noexcept;
 
 };
 
-// Tile's Minimum Remaining Value
+// Board Minimum Remaining Value
 class BoardMRV
 {
 private:
     struct TileMRV
     {
         bool            Filled;
-        uint16_t        Row, Column;
+        short           Row, Column;
         std::bitset<9> *RowOccurence = nullptr, *ColOccurence = nullptr, *CellOccurence = nullptr;
 
         TileMRV() = default;
-        TileMRV(uint16_t row, uint16_t col, std::bitset<9>* row_occur, std::bitset<9>* col_occur, std::bitset<9>* cell_occur) : 
+        TileMRV(short row, short col, std::bitset<9>* row_occur, std::bitset<9>* col_occur, std::bitset<9>* cell_occur) : 
             Row(row), Column(col), Filled(false), RowOccurence(row_occur), ColOccurence(col_occur), CellOccurence(cell_occur) 
         {}
     };
@@ -72,16 +72,16 @@ private:
 
 public:
     constexpr BoardMRV() = default;
-    constexpr BoardMRV(SudokuBoard& board, SudokuBoardLogic& board_logic);
+    constexpr BoardMRV(const SudokuBoard& board, SudokuBoardLogic& board_logic);
 
     constexpr void 
-    CreateMRV(SudokuBoard& board, SudokuBoardLogic& board_logic) noexcept;
-    constexpr std::tuple<uint16_t, uint16_t, uint16_t>
-    GetHighestTileMRV() noexcept;
+    CreateMRV(const SudokuBoard& board, SudokuBoardLogic& board_logic) noexcept;
+    constexpr std::tuple<short, short, short>
+    FindLowestMRV() noexcept;
     std::bitset<9>
     GetOccurences(size_t mrv_index) noexcept;
     void
-    SetFilledStatus(size_t index, uint16_t number, bool filled);
+    SetFilledStatus(size_t index, short number, bool filled);
 
 };
 
@@ -134,7 +134,10 @@ SolveMRVEX(SudokuBoard& board, BoardMRV& board_mrvs) noexcept;
 bool
 SolveBruteForce(SudokuBoard& board, SudokuBoardLogic* board_logic = nullptr) noexcept;
 constexpr bool
-SolveBruteForceEX(SudokuBoard& board, SudokuBoardLogic& board_logic, const uint16_t row_start, const uint16_t col_start) noexcept;
+SolveBruteForceEX(SudokuBoard& board, SudokuBoardLogic& board_logic, const short row_start, const short col_start) noexcept;
+// 
+bool
+SolveHumanely(SudokuBoard& board, SudokuBoardLogic& board_logic, BoardMRV& board_mrv) noexcept;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------
 // Utility functions for the sudoku solvers
@@ -143,16 +146,16 @@ SolveBruteForceEX(SudokuBoard& board, SudokuBoardLogic& board_logic, const uint1
 
 // A sudoku solver function but its job is to fill the remaining blanks to create a sudoku board
 bool
-FillSudoku(SudokuBoard& board, SudokuBoardLogic& board_logic, const std::array<uint16_t, 9>& random_numbers, uint16_t const row_start, uint16_t const col_start) noexcept;
+FillSudoku(SudokuBoard& board, SudokuBoardLogic& board_logic, const std::array<short, 9>& random_numbers, short const row_start, short const col_start) noexcept;
 // Checks if the board has a unique solution
 bool
 IsUniqueBoard(SudokuBoard& board, SudokuBoardLogic* board_logic = nullptr) noexcept;
 // Count the number of solutions of the created puzzle
 void
-CountSolutions(SudokuBoard& board, SudokuBoardLogic& board_logic, size_t& number_of_solutions, uint16_t const row_start, uint16_t const col_start) noexcept;
+CountSolutions(SudokuBoard& board, SudokuBoardLogic& board_logic, size_t& number_of_solutions, short const row_start, short const col_start) noexcept;
 // Create the board logic with the given board. Also serves as a checker for board validity
 bool
-CreateBoardLogic(SudokuBoard& board, SudokuBoardLogic& board_logic) noexcept;
+CreateBoardLogic(const SudokuBoard& board, SudokuBoardLogic& board_logic) noexcept;
 // Clear the sudoku board (fills the array with '0's)
 void
 ClearSudokuBoard(SudokuBoard& board) noexcept;
@@ -161,3 +164,22 @@ ClearSudokuBoard(SudokuBoard& board) noexcept;
 SudokuDifficulty
 CheckSudokuDifficulty(const SudokuBoard& solution_board, const SudokuBoard& puzzle_board, const SudokuBoardLogic& puzzle_logic) noexcept;
 }
+
+namespace SudokuTekniks
+{
+
+// Finds all the 'Single Candidate' tiles
+// Returns the number of single candidates
+size_t
+FindSingleCandidates(SudokuBoard& puzzle_board, BoardMRV& board_mrv) noexcept;
+
+size_t
+FindSinglePosition(SudokuBoard& puzzle_board, SudokuBoardLogic& puzzle_logic) noexcept;
+
+}
+
+
+
+
+
+

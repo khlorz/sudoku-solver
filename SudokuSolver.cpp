@@ -4,22 +4,22 @@
 namespace sdq
 {
 
-constexpr uint16_t GetNextRow(uint16_t row, uint16_t col) noexcept
+constexpr short GetNextRow(short row, short col) noexcept
 {
     return row + (col + 1) / 9;
 }
 
-constexpr uint16_t GetNextCol(uint16_t col) noexcept
+constexpr short GetNextCol(short col) noexcept
 {
     return (col + 1) % 9;
 }
 
-constexpr uint16_t GetCellBlock(uint16_t row, uint16_t col) noexcept
+constexpr short GetCellBlock(short row, short col) noexcept
 {
     return (row / 3) * 3 + col / 3;
 }
 
-constexpr std::pair<uint16_t, uint16_t> NextEmptyPosition(const SudokuBoard& board, uint16_t row, uint16_t col) noexcept
+constexpr std::pair<short, short> NextEmptyPosition(const SudokuBoard& board, short row, short col) noexcept
 {
     while (row != 9) {
         if (board[row][col] == '0') {
@@ -63,7 +63,7 @@ void SudokuBoardLogic::ResetAll()
     CellOccurences = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 }
 
-void SudokuBoardLogic::SetCellNumber(uint16_t row, uint16_t col, uint16_t number) noexcept
+void SudokuBoardLogic::SetCellNumber(short row, short col, short number) noexcept
 {
     RowOccurences[row].set(number);
     ColOccurences[col].set(number);
@@ -71,28 +71,28 @@ void SudokuBoardLogic::SetCellNumber(uint16_t row, uint16_t col, uint16_t number
     CellOccurences[cellblock].set(number);
 }
 
-std::bitset<9>& SudokuBoardLogic::GetRowOccurences(uint16_t row) noexcept
+std::bitset<9>& SudokuBoardLogic::GetRowOccurences(short row) noexcept
 {
     return RowOccurences[row];
 }
 
-std::bitset<9>& SudokuBoardLogic::GetColumnOccurences(uint16_t col) noexcept
+std::bitset<9>& SudokuBoardLogic::GetColumnOccurences(short col) noexcept
 {
     return ColOccurences[col];
 }
 
-std::bitset<9>& SudokuBoardLogic::GetCellOccurences(uint16_t cell) noexcept
+std::bitset<9>& SudokuBoardLogic::GetCellOccurences(short cell) noexcept
 {
     return CellOccurences[cell];
 }
 
-std::bitset<9> SudokuBoardLogic::GetTileOccurences(uint16_t row, uint16_t col) const noexcept
+std::bitset<9> SudokuBoardLogic::GetTileOccurences(short row, short col) const noexcept
 {
     const auto& cell = sdq::GetCellBlock(row, col);
     return RowOccurences[row] | ColOccurences[col] | CellOccurences[cell];
 }
 
-void SudokuBoardLogic::ResetCellNumber(uint16_t row, uint16_t col, uint16_t number) noexcept
+void SudokuBoardLogic::ResetCellNumber(short row, short col, short number) noexcept
 {
     RowOccurences[row].reset(number);
     ColOccurences[col].reset(number);
@@ -106,13 +106,13 @@ void SudokuBoardLogic::ResetCellNumber(uint16_t row, uint16_t col, uint16_t numb
 // VecMRV CLASS
 //--------------------------------------------------------------------------------------------------------------------------------
 
-constexpr BoardMRV::BoardMRV(SudokuBoard& board, SudokuBoardLogic& board_logic)
+constexpr BoardMRV::BoardMRV(const SudokuBoard& board, SudokuBoardLogic& board_logic)
 {
     TheMRVs.reserve(64);
     CreateMRV(board, board_logic);
 }
 
-constexpr void BoardMRV::CreateMRV(SudokuBoard& board, SudokuBoardLogic& board_logic) noexcept
+constexpr void BoardMRV::CreateMRV(const SudokuBoard& board, SudokuBoardLogic& board_logic) noexcept
 {
     for (size_t row = 0; row < 9; ++row) {
         for (size_t col = 0; col < 9; ++col) {
@@ -128,35 +128,12 @@ constexpr void BoardMRV::CreateMRV(SudokuBoard& board, SudokuBoardLogic& board_l
     }
 }
 
-constexpr std::tuple<uint16_t, uint16_t, uint16_t> BoardMRV::GetHighestTileMRV() noexcept
-{
-    size_t highest_mrv = 0;
-    uint16_t highest_mrv_index = 0;
-    for (uint16_t idx = 0; idx < TheMRVs.size(); ++idx) {
-        if (TheMRVs[idx].Filled) {
-            continue;
-        }
-        
-        const auto& current_mrv_sum = TheMRVs[idx].CellOccurence->count() + TheMRVs[idx].ColOccurence->count() + TheMRVs[idx].RowOccurence->count();
-        if (highest_mrv < current_mrv_sum) {
-            highest_mrv  = current_mrv_sum;
-            highest_mrv_index = idx;
-        }
-    }
-
-    if (highest_mrv == 0) {
-        return { 9, 0, 0 };
-    }
-
-    return { TheMRVs[highest_mrv_index].Row, TheMRVs[highest_mrv_index].Column, highest_mrv_index };
-}
-
 std::bitset<9> BoardMRV::GetOccurences(size_t mrv_index) noexcept
 {
     return *TheMRVs[mrv_index].RowOccurence | *TheMRVs[mrv_index].ColOccurence | *TheMRVs[mrv_index].CellOccurence;
 }
 
-void BoardMRV::SetFilledStatus(size_t mrv_index, uint16_t number, bool filled)
+void BoardMRV::SetFilledStatus(size_t mrv_index, short number, bool filled)
 {
     TheMRVs[mrv_index].Filled = filled;
 
@@ -164,7 +141,29 @@ void BoardMRV::SetFilledStatus(size_t mrv_index, uint16_t number, bool filled)
     else        { TheMRVs[mrv_index].RowOccurence->reset(number); TheMRVs[mrv_index].ColOccurence->reset(number); TheMRVs[mrv_index].CellOccurence->reset(number); }
 }
 
+constexpr std::tuple<short, short, short> BoardMRV::FindLowestMRV() noexcept
+{
+    short highest_mrv = -1;
+    short highest_mrv_index = 0;
+    for (short idx = 0; idx < TheMRVs.size(); ++idx) {
+        if (TheMRVs[idx].Filled) {
+            continue;
+        }
+        
+        const auto& current_mrv_sum = *TheMRVs[idx].CellOccurence | *TheMRVs[idx].ColOccurence | *TheMRVs[idx].RowOccurence;
+        const short& count = current_mrv_sum.count();
+        if (highest_mrv < count) {
+            highest_mrv  = count;
+            highest_mrv_index = idx;
+        }
+    }
 
+    if (highest_mrv == -1) {
+        return { 9, 0, 0 };
+    }
+
+    return { TheMRVs[highest_mrv_index].Row, TheMRVs[highest_mrv_index].Column, highest_mrv_index };
+}
 
 //--------------------------------------------------------------------------------------------------------------------------------
 // SudokuSolver Namespace
@@ -376,7 +375,7 @@ bool Solve6(std::array<int, 81>& board, SudokuBoardLogic* board_logic, SolveMeth
 // - Functions that makes use of sudoku solvers (i.e. filling a partially filled sudoku and counting a sudoku board's number of solutions)
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-constexpr bool SolveBruteForceEX(SudokuBoard& board, SudokuBoardLogic& board_logic, const uint16_t row_start, const uint16_t col_start) noexcept
+constexpr bool SolveBruteForceEX(SudokuBoard& board, SudokuBoardLogic& board_logic, const short row_start, const short col_start) noexcept
 {
     const auto& [row, col] = sdq::NextEmptyPosition(board, row_start, col_start);
 
@@ -390,7 +389,7 @@ constexpr bool SolveBruteForceEX(SudokuBoard& board, SudokuBoardLogic& board_log
         return false;
     }
 
-    for (uint16_t digit_idx = 0; digit_idx < 9; ++digit_idx) {
+    for (short digit_idx = 0; digit_idx < 9; ++digit_idx) {
         if (occurences[digit_idx]) {
             continue;
         }
@@ -423,7 +422,7 @@ bool SolveBruteForce(SudokuBoard& board, SudokuBoardLogic* board_logic) noexcept
 
 constexpr bool SolveMRVEX(SudokuBoard& board, BoardMRV& board_mrvs) noexcept
 {
-    auto [row, col, mrv_index] = board_mrvs.GetHighestTileMRV();
+    const auto& [row, col, mrv_index] = board_mrvs.FindLowestMRV();
 
     if (row == 9) {
         return true;
@@ -434,7 +433,7 @@ constexpr bool SolveMRVEX(SudokuBoard& board, BoardMRV& board_mrvs) noexcept
         return false;
     }
 
-    for (uint16_t digit_idx = 0; digit_idx < 9; ++digit_idx) {
+    for (short digit_idx = 0; digit_idx < 9; ++digit_idx) {
         if (occurences[digit_idx]) {
             continue;
         }
@@ -466,12 +465,30 @@ bool SolveMRV(SudokuBoard& board, SudokuBoardLogic* board_logic) noexcept
     return SolveMRVEX(board, board_mrv);
 }
 
+bool SolveHumanely(SudokuBoard& board, SudokuBoardLogic& board_logic, BoardMRV& board_mrv) noexcept
+{
+    size_t difficulty_score = 0;
+
+    if (SudokuTekniks::FindSingleCandidates(board, board_mrv)) {
+        return SolveHumanely(board, board_logic, board_mrv);
+    }
+
+    if (SudokuTekniks::FindSinglePosition(board, board_logic)) {
+        return SolveHumanely(board, board_logic, board_mrv);
+    }
+
+    return true;
+}
+
+
+
+
 //----------------------------------------------------------------------------------------------------------------------------------------------
 // Utility functions for the sudoku solvers
 // - Functions that helps sudoku solvers and its other works
 //----------------------------------------------------------------------------------------------------------------------------------------------
 
-bool FillSudoku(SudokuBoard& board, SudokuBoardLogic& board_logic, const std::array<uint16_t, 9>& random_numbers, uint16_t const row_start, uint16_t const col_start) noexcept
+bool FillSudoku(SudokuBoard& board, SudokuBoardLogic& board_logic, const std::array<short, 9>& random_numbers, short const row_start, short const col_start) noexcept
 {
     const auto& [row, col] = sdq::NextEmptyPosition(board, row_start, col_start);
 
@@ -484,7 +501,7 @@ bool FillSudoku(SudokuBoard& board, SudokuBoardLogic& board_logic, const std::ar
         return false;
     }
 
-    for (uint16_t idx = 0; idx < 9; ++idx) {
+    for (short idx = 0; idx < 9; ++idx) {
         auto digit = random_numbers[idx];
         if (occurences[digit]) {
             continue;
@@ -519,7 +536,7 @@ bool IsUniqueBoard(SudokuBoard& board, SudokuBoardLogic* board_logic) noexcept
     return number_of_solutions == 1;
 }
 
-void CountSolutions(SudokuBoard& board, SudokuBoardLogic& board_logic, size_t& number_of_solutions, uint16_t const row_start, uint16_t const col_start) noexcept
+void CountSolutions(SudokuBoard& board, SudokuBoardLogic& board_logic, size_t& number_of_solutions, short const row_start, short const col_start) noexcept
 {
     const auto& [row, col] = sdq::NextEmptyPosition(board, row_start, col_start);
 
@@ -534,7 +551,7 @@ void CountSolutions(SudokuBoard& board, SudokuBoardLogic& board_logic, size_t& n
     //    return;
     //}
 
-    for (uint16_t digit_idx = 0; digit_idx < 9 && number_of_solutions < 2; ++digit_idx) {
+    for (short digit_idx = 0; digit_idx < 9 && number_of_solutions < 2; ++digit_idx) {
         if (occurences[digit_idx]) {
             continue;
         }
@@ -548,18 +565,18 @@ void CountSolutions(SudokuBoard& board, SudokuBoardLogic& board_logic, size_t& n
     board[row][col] = '0';
 }
 
-bool CreateBoardLogic(SudokuBoard& board, SudokuBoardLogic& board_logic) noexcept
+bool CreateBoardLogic(const SudokuBoard& board, SudokuBoardLogic& board_logic) noexcept
 {
     board_logic.ResetAll();
 
-    for (uint16_t row = 0; row < 9; ++row) {
-        for (uint16_t col = 0; col < 9; ++col) {
+    for (short row = 0; row < 9; ++row) {
+        for (short col = 0; col < 9; ++col) {
             if (board[row][col] < '0' || board[row][col] > '9') {
                 return false;
             }
             char digit;
             if ((digit = board[row][col]) != '0') {
-                uint16_t digit_num = digit - '1';
+                short digit_num = digit - '1';
                 if (board_logic.GetTileOccurences(row, col)[digit_num]) {
                     return false;
                 }
@@ -585,7 +602,7 @@ SudokuDifficulty CheckSudokuDifficulty(const SudokuBoard& solution_board, const 
     BoardMRV puzzle_mrv(temp_board, temp_logic);
     do
     {
-        const auto [row, col, mrv_index] = puzzle_mrv.GetHighestTileMRV();
+        const auto [row, col, mrv_index] = puzzle_mrv.FindLowestMRV();
         if (row == 9) {
             break;
         }
@@ -610,6 +627,75 @@ SudokuDifficulty CheckSudokuDifficulty(const SudokuBoard& solution_board, const 
         return SudokuDifficulty_Hard;
     
     return SudokuDifficulty_ChadBrain;
+}
+
+}
+
+namespace SudokuTekniks
+{
+
+size_t FindSingleCandidates(SudokuBoard& puzzle_board, BoardMRV& board_mrv) noexcept
+{
+    size_t count = 0;
+    do
+    {
+        auto [row, col, mrv_index] = board_mrv.FindLowestMRV();
+        const std::bitset<9>& occurences = board_mrv.GetOccurences(mrv_index);
+        if (occurences.count() != 1) {
+            break;
+        }
+
+        for (short num = 0; num < 9; ++num) {
+            if (occurences[num]) {
+                continue;
+            }
+
+            puzzle_board[row][col] = static_cast<char>(num + '1');
+            board_mrv.SetFilledStatus(mrv_index, num, true);
+            ++count;
+            break;
+        }
+    } while (true);
+
+    return count;
+}
+
+size_t FindSinglePosition(SudokuBoard& puzzle_board, SudokuBoardLogic& puzzle_logic) noexcept
+{
+    size_t count = 0;
+    for (short cell = 0; cell < 9; ++cell) {
+        std::bitset<9> occurences = 0;
+        short min_row = (cell / 3) * 3;
+        short max_row = min_row + 3;
+        short min_col = (cell % 3) * 3;
+        short max_col = min_col + 3;
+        short singles_row = -1;
+        short singles_col = -1;
+        for (short bit = 0; bit < 9; ++bit) {
+            short bit_count = 0;
+            for (short row = min_row; row < max_row; ++row) {
+                for (short col = min_col; col < max_col; ++col) {
+                    if (puzzle_board[row][col] == '0') {
+                        continue;
+                    }
+
+                    if (puzzle_logic.GetTileOccurences(row, col)[bit]) {
+                        ++bit_count;
+                        singles_row = row;
+                        singles_col = col;
+                    }
+                }
+            }
+            if (bit_count == 1) {
+                puzzle_board[singles_row][singles_col] = static_cast<char>(bit + '1');
+                puzzle_logic.SetCellNumber(singles_row, singles_col, bit);
+                ++count;
+                break;
+            }
+        }
+    }
+
+    return count;
 }
 
 }
